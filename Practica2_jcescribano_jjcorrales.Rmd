@@ -1,0 +1,50 @@
+---
+title: "Práctica 2: ¿Cómo realizar la limpieza y análisis de datos? "
+author: "Juan Carlos Escribano Rubio, Juan Javier Corrales Pérez"
+date: "22/12/2022"
+output:
+  pdf_document:
+    toc: yes
+    number_sections: yes
+  html_document:
+    toc: yes
+    number_sections: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+******
+# Descripción del dataset.
+******
+Para realizar la práctica hemos decidido utilizar el dataset propuesto en el enunciado:
+
+https://www.kaggle.com/datasets/rashikrahmanpritom/heart-attack-analysis-prediction-dataset
+
+
+El nombre del dataset es "Heart Attack Analysis & Prediction Dataset" y contiene diversas variables con información médica de diversos pacientes y la variable "target" dicotómica que indica si tiene más o menos probabilidad de sufrir un ataque cardiaco.
+
+Este dataset nos permite por un lado realizar un análisis de cuales son las variables más relevantes de cara a predecir un ataque cardiaco y por otra nos permite modelar un sistema predictivo que nos indique la probabilidad de sufrir un ataque cardiaco en base a las variables médicas de un paciente.
+
+******
+# Integración y selección
+******
+
+******
+# Limpieza de los datos.
+******
+
+******
+# Análisis de los datos.
+******
+
+******
+# Representación de los resultados
+******
+
+******
+# Resolución del problema.
+******
+
+
