@@ -4,20 +4,21 @@ author: "Juan Carlos Escribano Rubio, Juan Javier Corrales Pérez"
 date: "22/12/2022"
 output:
   pdf_document:
+    df_print: kable
     toc: yes
-    number_sections: yes
-  html_document:
-    toc: yes
-    number_sections: yes
+    toc_depth: 3
+lang: es
+encoding: "utf-8"
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
 ```
-******
-# Descripción del dataset.
-******
+\newpage
+
+# 1. Descripción del dataset.
+
 Para realizar la práctica hemos decidido utilizar el dataset propuesto en el enunciado:
 
 https://www.kaggle.com/datasets/rashikrahmanpritom/heart-attack-analysis-prediction-dataset
@@ -27,24 +28,45 @@ El nombre del dataset es "Heart Attack Analysis & Prediction Dataset" y contiene
 
 Este dataset nos permite por un lado realizar un análisis de cuales son las variables más relevantes de cara a predecir un ataque cardiaco y por otra nos permite modelar un sistema predictivo que nos indique la probabilidad de sufrir un ataque cardiaco en base a las variables médicas de un paciente.
 
-******
-# Integración y selección
-******
+# 2. Integración y selección
 
-******
-# Limpieza de los datos.
-******
+```{r load}
+# Realizamos la carga de los datos a trabajar.
+data.heart <- read.csv("heart.csv", stringsAsFactors = TRUE, header = TRUE, sep=",")
 
-******
-# Análisis de los datos.
-******
+# Mostramos el detalle del data frame cargado.
+str(data.heart)
+summary(data.heart)
+```
 
-******
-# Representación de los resultados
-******
 
-******
-# Resolución del problema.
-******
+# 3. Limpieza de los datos.
+
+## 3.1 ¿Los datos contienen ceros o elementos vacíos?
+
+
+## 3.2 Identifica y gestiona los valores extremos.
+
+# 4. Análisis de los datos.
+
+## 4.1 Selección de los grupos de datos que se quieren analizar/comparar (p. ej., si se van a comparar grupos de datos, ¿cuáles son estos grupos y qué tipo de análisis se van a aplicar?)
+
+
+
+## 4.2 Comprobación de la normalidad y homogeneidad de la varianza.
+
+
+
+
+## 4.3 Aplicación de pruebas estadísticas para comparar los grupos de datos. En función de los datos y el objetivo del estudio, aplicar pruebas de contraste de hipótesis, correlaciones, regresiones, etc. Aplicar al menos tres métodos de análisis diferentes.
+
+
+
+
+# 5. Representación de los resultados
+
+
+
+# 6. Resolución del problema.
 
 
