@@ -1,7 +1,7 @@
 ---
 title: "Práctica 2: ¿Cómo realizar la limpieza y análisis de datos? "
 author: "Juan Carlos Escribano Rubio, Juan Javier Corrales Pérez"
-date: "22/12/2022"
+date: "22 de Diciembre de 2022"
 output:
   pdf_document:
     df_print: kable
@@ -13,7 +13,8 @@ encoding: "utf-8"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-
+# Realizamos la carga de las librerias necesarias
+library(gridExtra)
 ```
 \newpage
 
@@ -24,28 +25,136 @@ Para realizar la práctica hemos decidido utilizar el dataset propuesto en el en
 https://www.kaggle.com/datasets/rashikrahmanpritom/heart-attack-analysis-prediction-dataset
 
 
-El nombre del dataset es "Heart Attack Analysis & Prediction Dataset" y contiene diversas variables con información médica de diversos pacientes y la variable "target" dicotómica que indica si tiene más o menos probabilidad de sufrir un ataque cardiaco.
+El nombre del dataset es "Heart Attack Analysis & Prediction Dataset" y contiene diversas variables con información médica de diversos pacientes y la variable "output" dicotómica que indica si tiene más o menos probabilidad de sufrir un ataque cardiaco.
 
-Este dataset nos permite por un lado realizar un análisis de cuales son las variables más relevantes de cara a predecir un ataque cardiaco y por otra nos permite modelar un sistema predictivo que nos indique la probabilidad de sufrir un ataque cardiaco en base a las variables médicas de un paciente.
+Este dataset nos permite por un lado realizar un análisis de cuáles son las variables más relevantes de cara a predecir un ataque cardiaco y por otra nos permite modelar un sistema predictivo que nos indique la probabilidad de sufrir un ataque cardiaco en base a las variables médicas de un paciente.
+
+El detalle de las variables contenidas en el dataset es el siguiente:
+
+* age: Edad del paciente.
+
+* sex: Sexo biológico del paciente, medida en dos categorías: (0:Mujer, 1:Hombre)
+
+* cp: Tipo de dolor torácico, medida en cuatro categorías: (0:Angina típica, 1:Angina atípica, 2:Dolor no anginoso, 3:Asintomático)
+
+* trtbps - Presión arterial en reposo (en mm Hg)
+
+* chol - Colesterol en mg/dl obtenido a través del sensor BMI
+
+* fbs - azúcar en sangre en ayunas > 120 mg/dl, medida en dos categorías: (0:Falso, 1:Verdadero)
+
+* restecg - Resultados electrocardiográficos en reposo, medida en tres categorías: (0:Normal, 1:Normalidad de onda ST-T, 2:Hipertrofia ventricular izquierda)
+
+* thalachh - Frecuencia cardíaca máxima alcanzada.
+
+* exng - Angina inducida por el ejercicio, medida en dos categorías: (0:No, 1:Sí)
+
+* oldpeak - Depresión del segmento ST en prueba de esfuerzo
+
+* slp - Pendiente del segmento ST, medida en tres categorías: (0:Pendiente ascendente, 1:Pendiente plana, 2:Pendiente descendente)
+
+* caa - Número de vasos
+
+* thall - Resultado de la prueba de esfuerzo con talio, medida en cuatro categorías: (0 ~ 3)
+
+* output - variable de destino, medida en dos categorías: (0:Menos posibilidades de ataque al corazón, 1:Más posibilidades de ataque al corazón)
+
+Este dataset nos permite, por un lado, realizar un análisis de cuáles son las variables más relevantes de cara a predecir un ataque cardiaco y por otra modelar un sistema predictivo que nos indique la probabilidad de sufrir un ataque cardiaco en base a las variables medicas de un paciente.
 
 # 2. Integración y selección
 
 ```{r load}
 # Realizamos la carga de los datos a trabajar.
-data.heart <- read.csv("heart.csv", stringsAsFactors = TRUE, header = TRUE, sep=",")
+data_heart <- read.csv("heart.csv", stringsAsFactors = TRUE, header = TRUE, sep=",")
 
-# Mostramos el detalle del data frame cargado.
-str(data.heart)
-summary(data.heart)
+# Mostramos las dimensiones, la estructura y el contenido del data frame cargado.
+dim(data_heart)
+str(data_heart)
+summary(data_heart)
+
+# Cambiamos el tipo de datos a factor de algunas variables.
+cols<-c("sex","cp","fbs","restecg", "exng", "slp", "thall", "output")
+for (i in cols){
+data_heart[,i] <- as.factor(data_heart[,i])
+}
+
+# Después de los cambios, analizamos la nueva estructura del conjunto de datos
+str(data_heart)
 ```
 
+Dado que todas las variables han sido importadas como tipo __int__, modificamos el tipo de variable a __factor__ para todas las variables categóricas de nuestro dataset.
 
 # 3. Limpieza de los datos.
 
 ## 3.1 ¿Los datos contienen ceros o elementos vacíos?
 
+```{r limpieza}
+# Estadísticas de valores vacíos
+colSums(is.na(data_heart))
+
+# Se comprueba si existen registros duplicados
+data_heart[duplicated(data_heart), ]
+
+# Se eliminan los datos duplicados
+data_heart <- data_heart[!duplicated(data_heart), ]
+```
+
+Se realiza la comprobación de si existen valores vacíos y se comprueba que no existe ninguno. El dataset tampoco contiene datos a cero, ya que todos los datos importados con este valor son correctos.
+
+Se comprueba también de si existen datos duplicados. Se detecta de que existe un registro duplicado y se procede a su eliminación del dataset.
 
 ## 3.2 Identifica y gestiona los valores extremos.
+
+```{r extremos}
+# Comprobación de age
+boxplot(data_heart$age, main="age")
+
+# Comprobación de trtbps
+boxplot(data_heart$trtbps, main="trtbps")
+x <- boxplot.stats(data_heart$trtbps)$out
+idx <- which(data_heart$trtbps %in% x)
+sort(data_heart$trtbps[idx])
+
+# Comprobación de chol
+boxplot(data_heart$chol, main="chol")
+x <- boxplot.stats(data_heart$chol)$out
+idx <- which(data_heart$chol %in% x)
+sort(data_heart$chol[idx])
+
+# Comprobación de thalachh
+boxplot(data_heart$thalachh, main="thalachh")
+x <- boxplot.stats(data_heart$thalachh)$out
+idx <- which(data_heart$thalachh %in% x)
+sort(data_heart$thalachh[idx])
+
+# Comprobación de oldpeak
+boxplot(data_heart$oldpeak, main="oldpeak")
+x <- boxplot.stats(data_heart$oldpeak)$out
+idx <- which(data_heart$oldpeak %in% x)
+sort(data_heart$oldpeak[idx])
+```
+
+De las variables analizadas, solo se detecta que existen valores extremos en la variable __chol__. En el resto de variables, a pesar de que existen valores atípicos, estos no se consideran valores anómalos.
+
+```{r extremos_correccion}
+# chol
+# Se asigna a NA los valores > 500. El resto se deja igual.
+data_heart$chol[data_heart$chol > 500 ] <- NA
+
+#Check
+sum(is.na(data_heart$chol))
+
+# Se calcula la media aritmética por género
+idx <- which(is.na(data_heart$chol))
+mean.f <- round(mean(data_heart$chol[data_heart$sex == 0], na.rm=TRUE ))
+mean.m <- round(mean(data_heart$chol[data_heart$sex == 1], na.rm=TRUE ))
+
+# Se asignan los nuevos valores
+data_heart$chol[idx] <- ifelse(data_heart$sex[idx] == 0, mean.f, mean.m)
+data_heart$chol[idx]
+```
+
+Se corrigen los valores extremos de la variable __chol__ aplicando la imputación de su nuevo valor por la media aritmética de los registros del mismo género, es decir, separado por género.
 
 # 4. Análisis de los datos.
 
