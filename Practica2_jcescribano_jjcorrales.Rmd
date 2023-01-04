@@ -15,6 +15,7 @@ encoding: "utf-8"
 knitr::opts_chunk$set(echo = TRUE)
 # Realizamos la carga de las librerias necesarias
 library(gridExtra)
+library(car)
 ```
 \newpage
 
@@ -161,28 +162,42 @@ Se corrigen los valores extremos de la variable __chol__ aplicando la imputació
 ## 4.1 Selección de los grupos de datos que se quieren analizar/comparar (p. ej., si se van a comparar grupos de datos, ¿cuáles son estos grupos y qué tipo de análisis se van a aplicar?)
 
 * Correlación entre age, chol, trtbps, thalachh
+
 * Sex vs target
-** Determinar si hay una diferencia en la distribución de hombre y mujeres entre las categorias 0 y 1 de target.
-** Usaremos el test chi-cuadrado
+  + Determinar si hay una diferencia en la distribución de hombre y mujeres entre las categorias 0 y 1 de target.
+  + Usaremos el test chi-cuadrado
+
 * Age vs target
-** Relación entre edad y probabilidad de ataque cardiaco
-** La edad de las personas con más probabilidad de ataque cardiaco es significativamente diferente de las que tienen menos probabilidad?
-** Usaremos un gráfico de dispersión, no tengo muy claro como hacerlo
-*  trtbps y chol
-** Determinar si existe correlación
+  + Relación entre edad y probabilidad de ataque cardiaco
+  + La edad de las personas con más probabilidad de ataque cardiaco es significativamente diferente de las que tienen menos probabilidad?
+  + Usaremos un gráfico de dispersión, no tengo muy claro como hacerlo
+
 * Regresión logistica target -> chol, Age, sex, trtbps
-** Se particionaran los datos para disponer de un conjunto de entrenamiento y test
-** Se evaluará la calidad del modelo
+  + Se particionaran los datos para disponer de un conjunto de entrenamiento y test
+  + Se evaluará la calidad del modelo
 
 
 ## 4.2 Comprobación de la normalidad y homogeneidad de la varianza.
 
 ### Comprobación de la normalidad
+
 Establecemos que el p-valor de significancia será de 0.05
+
 ```{r normalidad}
+qqnorm(data_heart$age)
+qqline(data_heart$age, col=2)
 shapiro.test(data_heart$age)
+
+qqnorm(data_heart$trtbps)
+qqline(data_heart$trtbps, col=2)
 shapiro.test(data_heart$trtbps)
+
+qqnorm(data_heart$chol)
+qqline(data_heart$chol, col=2)
 shapiro.test(data_heart$chol)
+
+qqnorm(data_heart$thalachh)
+qqline(data_heart$thalachh, col=2)
 shapiro.test(data_heart$thalachh)
 ```
 
@@ -190,20 +205,22 @@ Los resultados indican que todas las variables numéricas del dataset menos age 
 
 ### Comprobación de la homogeneidad de la varianza
 
-```{r}
-library(car)
+```{r homogeneidad}
 leveneTest(age ~ output, data=data_heart)
 ```
 No existe homogeneidad de la varianza entre edad y output (p-value<0.05)
-```{r}
+
+```{r homoedadoutput}
 leveneTest(trtbps ~ output, data=data_heart)
 ```
 Existe homogeneidad de la varianza entre trtbps y output (p-value>0.05)
-```{r}
+
+```{r homotrtbpsoutput}
 leveneTest(chol ~ output, data=data_heart)
 ```
 Existe homogeneidad de la varianza entre chol y output (p-value>0.05)
-```{r}
+
+```{r homocholoutput}
 leveneTest(thalachh ~ output, data=data_heart)
 ```
 No existe homogeneidad de la varianza entre chol y output (p-value<0.05)
@@ -212,36 +229,34 @@ No existe homogeneidad de la varianza entre chol y output (p-value<0.05)
 ## 4.3 Aplicación de pruebas estadísticas para comparar los grupos de datos. En función de los datos y el objetivo del estudio, aplicar pruebas de contraste de hipótesis, correlaciones, regresiones, etc. Aplicar al menos tres métodos de análisis diferentes.
 
 * Correlación entre age, chol, trtbps, thalachh
-```{r}
+
+```{r correlacion}
 cor(data_heart[,c("age","chol", "trtbps", "thalachh")])
 ```
 No se observa una correlación fuerte entre las variables estudiadas aunque podrían ser relevantes las correlaciones entre age y thalachh y age y trtbps
 
 * Sex vs target
-** Determinar si hay una diferencia en la distribución de hombre y mujeres entre las categorias 0 y 1 de target.
-** Usaremos el test chi-cuadrado
+  + Determinar si hay una diferencia en la distribución de hombre y mujeres entre las categorias 0 y 1 de target.
+  + Usaremos el test chi-cuadrado
 
-```{r}
+```{r sexvtarget}
 tabla_contingencia <- table(data_heart$sex, data_heart$output)
 print(tabla_contingencia)
 chisq.test(tabla_contingencia)
 nrow(subset(data_heart, sex == 1 & output == 0))
-
-
 ```
 Como resultado del test chi-cuadrado obtenemos un p-value<0.05 lo que significa que existe una diferencia significativa en la distribución de hombres y mujeres con respecto a la probabilidad de tener un ataque cardíaco.
 
 * Age vs target
-** Relación entre edad y probabilidad de ataque cardiaco
-** La edad de las personas con más probabilidad de ataque cardiaco es significativamente diferente de las que tienen menos probabilidad?
+  + Relación entre edad y probabilidad de ataque cardiaco
+  + La edad de las personas con más probabilidad de ataque cardiaco es significativamente diferente de las que tienen menos probabilidad?
 
-```{r}
+```{r agevtarget}
 mas_probabilidad <- subset(data_heart, output == 1)
 menos_probabilidad <- subset(data_heart, output == 0)
 t.test(mas_probabilidad$age, menos_probabilidad$age)
 ```
 Para realizar este test los datos deben ser normales y con varianzas similares. La variable age sigue una distribución normal según los tests realizados pero no tengo claro si las varianzas lo son.
-
 
 
 # 5. Representación de los resultados
