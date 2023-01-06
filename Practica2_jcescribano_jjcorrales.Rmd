@@ -13,7 +13,7 @@ encoding: "utf-8"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-# Realizamos la carga de las librerias necesarias
+# Realizamos la carga de las librerías necesarias
 library(gridExtra)
 library(car)
 ```
@@ -26,9 +26,9 @@ Para realizar la práctica hemos decidido utilizar el dataset propuesto en el en
 https://www.kaggle.com/datasets/rashikrahmanpritom/heart-attack-analysis-prediction-dataset
 
 
-El nombre del dataset es "Heart Attack Analysis & Prediction Dataset" y contiene diversas variables con información médica de diversos pacientes y la variable "output" dicotómica que indica si tiene más o menos probabilidad de sufrir un ataque cardiaco.
+El nombre del dataset es "Heart Attack Analysis & Prediction Dataset" y contiene diversas variables con información médica de diversos pacientes y la variable "output" dicotómica que indica si tiene más o menos probabilidad de sufrir un ataque cardíaco.
 
-Este dataset nos permite por un lado realizar un análisis de cuáles son las variables más relevantes de cara a predecir un ataque cardiaco y por otra nos permite modelar un sistema predictivo que nos indique la probabilidad de sufrir un ataque cardiaco en base a las variables médicas de un paciente.
+Este dataset nos permite por un lado realizar un análisis de cuáles son las variables más relevantes de cara a predecir un ataque cardíaco y por otra nos permite modelar un sistema predictivo que nos indique la probabilidad de sufrir un ataque cardíaco en base a las variables médicas de un paciente.
 
 El detalle de las variables contenidas en el dataset es el siguiente:
 
@@ -60,7 +60,7 @@ El detalle de las variables contenidas en el dataset es el siguiente:
 
 * output - variable de destino, medida en dos categorías: (0:Menos posibilidades de ataque al corazón, 1:Más posibilidades de ataque al corazón)
 
-Este dataset nos permite, por un lado, realizar un análisis de cuáles son las variables más relevantes de cara a predecir un ataque cardiaco y por otra modelar un sistema predictivo que nos indique la probabilidad de sufrir un ataque cardiaco en base a las variables medicas de un paciente.
+Este dataset nos permite, por un lado, realizar un análisis de cuáles son las variables más relevantes de cara a predecir un ataque cardíaco y por otra modelar un sistema predictivo que nos indique la probabilidad de sufrir un ataque cardíaco en base a las variables medicas de un paciente.
 
 # 2. Integración y selección
 
@@ -106,7 +106,7 @@ Se comprueba también de si existen datos duplicados. Se detecta de que existe u
 
 ## 3.2 Identifica y gestiona los valores extremos.
 
-```{r fig.height = 3, fig.width = 3}
+```{r fig.height = 3, fig.width = 4}
 # Comprobación de age
 boxplot(data_heart$age, main="age")
 
@@ -163,20 +163,22 @@ Se corrigen los valores extremos de la variable __chol__ aplicando la imputació
 
 A continuación indico las preguntas que se quieren responder, las variables que utilizaremos para ello y el tipo de análisis que se realizará en cada caso:
 
-* Tiene influencia el sexo en la probabilidad de tener un ataque cardiaco
+* Tiene influencia el sexo en la probabilidad de tener un ataque cardíaco
   *  Variables analizadas:
     * sex, output
   * Tipo de análisis
     * Histograma
     * Tabla de contingencia
     * Chi cuadrado
-* ¿La edad de las personas con más probabilidad de ataque cardiaco es significativamente diferente de las que tienen menos probabilidad?
+* ¿La edad de las personas con más probabilidad de ataque cardíaco es significativamente diferente de las que tienen menos probabilidad?
   *  Variables analizadas:
     * age, output
   * Tipo de análisis
     * Gráfico de dispersión
     * Tabla de contingencia
     * Chi cuadrado
+    
+* Correlación entre age, chol, trtbps
 
 * Creación de un modelo de regresión logística
   * Variables analizadas:
@@ -197,7 +199,7 @@ A continuación comprobaremos la normalidad de las variables que vamos a analiza
 * Un test de Kolmogorov-Smirnov donde obtenemos un p-value>0.05 por lo que podemos
 considerar la variable como normal
 
-```{r fig.height = 3, fig.width = 3}
+```{r fig.height = 3, fig.width = 4}
 library(nortest)
 qqnorm(data_heart$age)
 qqline(data_heart$age, col=2)
@@ -211,7 +213,7 @@ considerar la variable como no normal
 * Un test de Shapiro-Wilk donde obtenemos un p-value < 0.05 por lo que podemos
 considerar la variable como no normal
 
-```{r fig.height = 3, fig.width = 3}
+```{r fig.height = 3, fig.width = 4}
 library(nortest)
 qqnorm(data_heart$trtbps)
 qqline(data_heart$trtbps, col=2)
@@ -227,7 +229,7 @@ considerar la variable como no normal
 
 Dado que tanto en el qqplot como en el test de Kolmogorov-Smirnov se observa normalidad consideraremos la variable como normal
 
-```{r fig.height = 3, fig.width = 3}
+```{r fig.height = 3, fig.width = 4}
 library(nortest)
 qqnorm(data_heart$chol)
 qqline(data_heart$chol, col=2)
@@ -271,10 +273,10 @@ leveneTest(sex_num ~ output, data=data_heart)
 
 ## 4.3 Aplicación de pruebas estadísticas para comparar los grupos de datos. En función de los datos y el objetivo del estudio, aplicar pruebas de contraste de hipótesis, correlaciones, regresiones, etc. Aplicar al menos tres métodos de análisis diferentes.
 
-* Tiene influencia el sexo en la probabilidad de tener un ataque cardiaco
+* Tiene influencia el sexo en la probabilidad de tener un ataque cardíaco
 
 
-```{r}
+```{r fig.height = 3, fig.width = 5}
 tabla_contingencia <- table(data_heart$sex, data_heart$output)
 print(tabla_contingencia)
 barplot(tabla_contingencia, legend = TRUE)
@@ -283,25 +285,23 @@ nrow(subset(data_heart, sex == 1 & output == 0))
 ```
 Como resultado del test chi-cuadrado obtenemos un p-value<0.05 lo que significa que existe una diferencia significativa en la distribución entre los sexos con respecto a la probabilidad de tener un ataque cardíaco.
 
-* ¿La edad de las personas con más probabilidad de ataque cardiaco es significativamente diferente de las que tienen menos probabilidad?
+* ¿La edad de las personas con más probabilidad de ataque cardíaco es significativamente diferente de las que tienen menos probabilidad?
 
-Ya que no existe homogeneidad en la varianza entre age y output, se tiene que pasar el parametro var.equal = False a la función t.test (así utilizará el t-test de Welch) para que lo tenga en cuenta.
-
+Ya que no existe homogeneidad en la varianza entre age y output, se tiene que pasar el parámetro var.equal = False a la función t.test (así utilizará el t-test de Welch) para que lo tenga en cuenta.
 El resultado del test indica que es muy poco probable que la diferencia observada en la media de la edad entre los dos grupos sea debido al azar. Por lo tanto, se puede concluir que hay una diferencia significativa en la edad entre los dos grupos.
 
+Se incluyen un histograma para la población de la muestra con más probabilidad de ataque cardíaco y otra con la que tiene menos a efectos de observar las diferencias en la distribución de edades.
 
-```{r agevtarget}
+
+```{r fig.height = 3, fig.width = 4}
 mas_probabilidad <- subset(data_heart, output == 1)
 menos_probabilidad <- subset(data_heart, output == 0)
 t.test(data_heart$age ~ data_heart$output,var.equal = FALSE)
-library(ggplot2)
+hist(mas_probabilidad$age,breaks=20)
+hist(menos_probabilidad$age,breaks=20)
 
-ggplot(data = datos, aes(x = age, y = output)) +
-  geom_point()
 
 ```
-
-
 
 * Correlación entre age, chol, trtbps
 
@@ -310,16 +310,12 @@ A partir de esta tabla, se puede ver que hay una correlación débilmente positi
 ```{r correlacion}
 cor(data_heart[,c("age","chol", "trtbps")])
 ```
-
-
-
-
-
-
-# 5. Representación de los resultados
-
-
+* Creación de un modelo de regresión logística
 
 # 6. Resolución del problema.
+
+A partir de los resultados obtenidos podemos indicar que:
+* Existen diferencias significativas entre la distribución de sexos en la probabilidad de sufrir un ataque cardíaco
+* Existen diferencias significativas entre las medas de edad de las personas con más y menos probabilidad de sufrir un ataque cardíaco.
 
 
