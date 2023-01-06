@@ -34,7 +34,7 @@ El detalle de las variables contenidas en el dataset es el siguiente:
 
 * age: Edad del paciente.
 
-* sex: Sexo biológico del paciente, medida en dos categorías: (0:Mujer, 1:Hombre)
+* sex: Sexo biológico del paciente (0,1)
 
 * cp: Tipo de dolor torácico, medida en cuatro categorías: (0:Angina típica, 1:Angina atípica, 2:Dolor no anginoso, 3:Asintomático)
 
@@ -106,7 +106,7 @@ Se comprueba también de si existen datos duplicados. Se detecta de que existe u
 
 ## 3.2 Identifica y gestiona los valores extremos.
 
-```{r extremos}
+```{r fig.height = 3, fig.width = 3}
 # Comprobación de age
 boxplot(data_heart$age, main="age")
 
@@ -161,102 +161,159 @@ Se corrigen los valores extremos de la variable __chol__ aplicando la imputació
 
 ## 4.1 Selección de los grupos de datos que se quieren analizar/comparar (p. ej., si se van a comparar grupos de datos, ¿cuáles son estos grupos y qué tipo de análisis se van a aplicar?)
 
-* Correlación entre age, chol, trtbps, thalachh
+A continuación indico las preguntas que se quieren responder, las variables que utilizaremos para ello y el tipo de análisis que se realizará en cada caso:
 
-* Sex vs target
-  + Determinar si hay una diferencia en la distribución de hombre y mujeres entre las categorias 0 y 1 de target.
-  + Usaremos el test chi-cuadrado
+* Tiene influencia el sexo en la probabilidad de tener un ataque cardiaco
+  *  Variables analizadas:
+    * sex, output
+  * Tipo de análisis
+    * Histograma
+    * Tabla de contingencia
+    * Chi cuadrado
+* ¿La edad de las personas con más probabilidad de ataque cardiaco es significativamente diferente de las que tienen menos probabilidad?
+  *  Variables analizadas:
+    * age, output
+  * Tipo de análisis
+    * Gráfico de dispersión
+    * Tabla de contingencia
+    * Chi cuadrado
 
-* Age vs target
-  + Relación entre edad y probabilidad de ataque cardiaco
-  + La edad de las personas con más probabilidad de ataque cardiaco es significativamente diferente de las que tienen menos probabilidad?
-  + Usaremos un gráfico de dispersión, no tengo muy claro como hacerlo
-
-* Regresión logistica target -> chol, Age, sex, trtbps
-  + Se particionaran los datos para disponer de un conjunto de entrenamiento y test
-  + Se evaluará la calidad del modelo
-
+* Creación de un modelo de regresión logística
+  * Variables analizadas:
+    * target -> chol, Age, sex, trtbps
+  * Tipo de análisis:
+    * Correlación entras las variables independientes
+    * Creación del modelo de regresión
+    * Evaluación de la calidad del modelo
 
 ## 4.2 Comprobación de la normalidad y homogeneidad de la varianza.
 
 ### Comprobación de la normalidad
+A continuación comprobaremos la normalidad de las variables que vamos a analizar
 
-Establecemos que el p-valor de significancia será de 0.05
+#### Edad
 
-```{r normalidad}
+* Un qqplot donde observamos que la curva se ajusta bastante bien a la normal
+* Un test de Kolmogorov-Smirnov donde obtenemos un p-value>0.05 por lo que podemos
+considerar la variable como normal
+
+```{r fig.height = 3, fig.width = 3}
+library(nortest)
 qqnorm(data_heart$age)
 qqline(data_heart$age, col=2)
-shapiro.test(data_heart$age)
+ks.test(data_heart$age, pnorm, mean(data_heart$age), sd(data_heart$age))
+```
+#### trtbps
 
+* Un qqplot donde observamos que la curva no se ajusta a la normal
+* Un test de Kolmogorov-Smirnov donde obtenemos un p-value < 0.05 por lo que podemos
+considerar la variable como no normal
+* Un test de Shapiro-Wilk donde obtenemos un p-value < 0.05 por lo que podemos
+considerar la variable como no normal
+
+```{r fig.height = 3, fig.width = 3}
+library(nortest)
 qqnorm(data_heart$trtbps)
 qqline(data_heart$trtbps, col=2)
+ks.test(data_heart$trtbps, pnorm, mean(data_heart$trtbps), sd(data_heart$trtbps))
 shapiro.test(data_heart$trtbps)
+```
+#### chol
+* Un qqplot donde observamos que la curva se ajusta bastante bien a la normal
+* Un test de Kolmogorov-Smirnov donde obtenemos un p-value > 0.05 por lo que podemos
+considerar la variable como normal
+* Un test de Shapiro-Wilk donde obtenemos un p-value < 0.05 por lo que podemos
+considerar la variable como no normal
 
+Dado que tanto en el qqplot como en el test de Kolmogorov-Smirnov se observa normalidad consideraremos la variable como normal
+
+```{r fig.height = 3, fig.width = 3}
+library(nortest)
 qqnorm(data_heart$chol)
 qqline(data_heart$chol, col=2)
+ks.test(data_heart$chol, pnorm, mean(data_heart$chol), sd(data_heart$chol))
 shapiro.test(data_heart$chol)
-
-qqnorm(data_heart$thalachh)
-qqline(data_heart$thalachh, col=2)
-shapiro.test(data_heart$thalachh)
 ```
 
-Los resultados indican que todas las variables numéricas del dataset menos age no son normales ya que su p-value es menor al p-value de significancia (0.05)
 
 ### Comprobación de la homogeneidad de la varianza
 
-```{r homogeneidad}
+#### age
+
+No existe homogeneidad de la varianza entre edad y output (p-value<0.05)
+```{r}
 leveneTest(age ~ output, data=data_heart)
 ```
-No existe homogeneidad de la varianza entre edad y output (p-value<0.05)
+#### trtbps
 
-```{r homoedadoutput}
-leveneTest(trtbps ~ output, data=data_heart)
-```
 Existe homogeneidad de la varianza entre trtbps y output (p-value>0.05)
 
-```{r homotrtbpsoutput}
-leveneTest(chol ~ output, data=data_heart)
+```{r}
+leveneTest(trtbps ~ output, data=data_heart)
 ```
+#### chol
+
 Existe homogeneidad de la varianza entre chol y output (p-value>0.05)
 
-```{r homocholoutput}
-leveneTest(thalachh ~ output, data=data_heart)
+```{r}
+leveneTest(chol ~ output, data=data_heart)
 ```
-No existe homogeneidad de la varianza entre chol y output (p-value<0.05)
+#### sex
+
+No existe homogeneidad de la varianza entre sex y output (p-value<0.05)
+
+```{r}
+data_heart$sex_num <- as.numeric(data_heart$sex)
+leveneTest(sex_num ~ output, data=data_heart)
+```
+
 
 
 ## 4.3 Aplicación de pruebas estadísticas para comparar los grupos de datos. En función de los datos y el objetivo del estudio, aplicar pruebas de contraste de hipótesis, correlaciones, regresiones, etc. Aplicar al menos tres métodos de análisis diferentes.
 
-* Correlación entre age, chol, trtbps, thalachh
+* Tiene influencia el sexo en la probabilidad de tener un ataque cardiaco
 
-```{r correlacion}
-cor(data_heart[,c("age","chol", "trtbps", "thalachh")])
-```
-No se observa una correlación fuerte entre las variables estudiadas aunque podrían ser relevantes las correlaciones entre age y thalachh y age y trtbps
 
-* Sex vs target
-  + Determinar si hay una diferencia en la distribución de hombre y mujeres entre las categorias 0 y 1 de target.
-  + Usaremos el test chi-cuadrado
-
-```{r sexvtarget}
+```{r}
 tabla_contingencia <- table(data_heart$sex, data_heart$output)
 print(tabla_contingencia)
+barplot(tabla_contingencia, legend = TRUE)
 chisq.test(tabla_contingencia)
 nrow(subset(data_heart, sex == 1 & output == 0))
 ```
-Como resultado del test chi-cuadrado obtenemos un p-value<0.05 lo que significa que existe una diferencia significativa en la distribución de hombres y mujeres con respecto a la probabilidad de tener un ataque cardíaco.
+Como resultado del test chi-cuadrado obtenemos un p-value<0.05 lo que significa que existe una diferencia significativa en la distribución entre los sexos con respecto a la probabilidad de tener un ataque cardíaco.
 
-* Age vs target
-  + Relación entre edad y probabilidad de ataque cardiaco
-  + La edad de las personas con más probabilidad de ataque cardiaco es significativamente diferente de las que tienen menos probabilidad?
+* ¿La edad de las personas con más probabilidad de ataque cardiaco es significativamente diferente de las que tienen menos probabilidad?
+
+Ya que no existe homogeneidad en la varianza entre age y output, se tiene que pasar el parametro var.equal = False a la función t.test (así utilizará el t-test de Welch) para que lo tenga en cuenta.
+
+El resultado del test indica que es muy poco probable que la diferencia observada en la media de la edad entre los dos grupos sea debido al azar. Por lo tanto, se puede concluir que hay una diferencia significativa en la edad entre los dos grupos.
+
 
 ```{r agevtarget}
 mas_probabilidad <- subset(data_heart, output == 1)
 menos_probabilidad <- subset(data_heart, output == 0)
-t.test(mas_probabilidad$age, menos_probabilidad$age)
+t.test(data_heart$age ~ data_heart$output,var.equal = FALSE)
+library(ggplot2)
+
+ggplot(data = datos, aes(x = age, y = output)) +
+  geom_point()
+
 ```
-Para realizar este test los datos deben ser normales y con varianzas similares. La variable age sigue una distribución normal según los tests realizados pero no tengo claro si las varianzas lo son.
+
+
+
+* Correlación entre age, chol, trtbps
+
+A partir de esta tabla, se puede ver que hay una correlación débilmente positiva entre edad y presión arterial en reposo (coeficiente de correlación de 0.28) y una correlación débilmente negativa entre colesterol y presión arterial en reposo (coeficiente de correlación de -0.15). Esto significa que a medida que la edad aumenta, la presión arterial en reposo también tiende a aumentar, mientras que a medida que el colesterol aumenta, la presión arterial en reposo tiende a disminuir.
+
+```{r correlacion}
+cor(data_heart[,c("age","chol", "trtbps")])
+```
+
+
+
+
 
 
 # 5. Representación de los resultados
