@@ -16,6 +16,11 @@ knitr::opts_chunk$set(echo = TRUE)
 # Realizamos la carga de las librerías necesarias
 library(gridExtra)
 library(car)
+library(nortest)
+library(VIM)
+library(caret)
+library(pROC)
+library(dplyr)
 ```
 \newpage
 
@@ -165,14 +170,16 @@ A continuación indico las preguntas que se quieren responder, las variables que
 
 * Tiene influencia el sexo en la probabilidad de tener un ataque cardíaco
   *  Variables analizadas:
-    * sex, output
+    * sex
+    * output
   * Tipo de análisis
     * Histograma
     * Tabla de contingencia
     * Chi cuadrado
 * ¿La edad de las personas con más probabilidad de ataque cardíaco es significativamente diferente de las que tienen menos probabilidad?
   *  Variables analizadas:
-    * age, output
+    * age
+    * output
   * Tipo de análisis
     * Gráfico de dispersión
     * Tabla de contingencia
@@ -182,7 +189,7 @@ A continuación indico las preguntas que se quieren responder, las variables que
 
 * Creación de un modelo de regresión logística
   * Variables analizadas:
-    * target -> chol, Age, sex, trtbps
+    * output -> age, sex, cp, trtbps, thalachh, exng, oldpeak, caa
   * Tipo de análisis:
     * Correlación entras las variables independientes
     * Creación del modelo de regresión
@@ -200,7 +207,6 @@ A continuación comprobaremos la normalidad de las variables que vamos a analiza
 considerar la variable como normal
 
 ```{r fig.height = 3, fig.width = 4}
-library(nortest)
 qqnorm(data_heart$age)
 qqline(data_heart$age, col=2)
 ks.test(data_heart$age, pnorm, mean(data_heart$age), sd(data_heart$age))
@@ -214,7 +220,6 @@ considerar la variable como no normal
 considerar la variable como no normal
 
 ```{r fig.height = 3, fig.width = 4}
-library(nortest)
 qqnorm(data_heart$trtbps)
 qqline(data_heart$trtbps, col=2)
 ks.test(data_heart$trtbps, pnorm, mean(data_heart$trtbps), sd(data_heart$trtbps))
@@ -230,7 +235,6 @@ considerar la variable como no normal
 Dado que tanto en el qqplot como en el test de Kolmogorov-Smirnov se observa normalidad consideraremos la variable como normal
 
 ```{r fig.height = 3, fig.width = 4}
-library(nortest)
 qqnorm(data_heart$chol)
 qqline(data_heart$chol, col=2)
 ks.test(data_heart$chol, pnorm, mean(data_heart$chol), sd(data_heart$chol))
@@ -243,38 +247,36 @@ shapiro.test(data_heart$chol)
 #### age
 
 No existe homogeneidad de la varianza entre edad y output (p-value<0.05)
-```{r}
+```{r homoage}
 leveneTest(age ~ output, data=data_heart)
 ```
 #### trtbps
 
 Existe homogeneidad de la varianza entre trtbps y output (p-value>0.05)
 
-```{r}
+```{r homotrtbps}
 leveneTest(trtbps ~ output, data=data_heart)
 ```
 #### chol
 
 Existe homogeneidad de la varianza entre chol y output (p-value>0.05)
 
-```{r}
+```{r homochol}
 leveneTest(chol ~ output, data=data_heart)
 ```
 #### sex
 
 No existe homogeneidad de la varianza entre sex y output (p-value<0.05)
 
-```{r}
+```{r homosex}
 data_heart$sex_num <- as.numeric(data_heart$sex)
 leveneTest(sex_num ~ output, data=data_heart)
 ```
 
 
-
 ## 4.3 Aplicación de pruebas estadísticas para comparar los grupos de datos. En función de los datos y el objetivo del estudio, aplicar pruebas de contraste de hipótesis, correlaciones, regresiones, etc. Aplicar al menos tres métodos de análisis diferentes.
 
 * Tiene influencia el sexo en la probabilidad de tener un ataque cardíaco
-
 
 ```{r fig.height = 3, fig.width = 5}
 tabla_contingencia <- table(data_heart$sex, data_heart$output)
@@ -292,15 +294,12 @@ El resultado del test indica que es muy poco probable que la diferencia observad
 
 Se incluyen un histograma para la población de la muestra con más probabilidad de ataque cardíaco y otra con la que tiene menos a efectos de observar las diferencias en la distribución de edades.
 
-
 ```{r fig.height = 3, fig.width = 4}
 mas_probabilidad <- subset(data_heart, output == 1)
 menos_probabilidad <- subset(data_heart, output == 0)
 t.test(data_heart$age ~ data_heart$output,var.equal = FALSE)
 hist(mas_probabilidad$age,breaks=20)
 hist(menos_probabilidad$age,breaks=20)
-
-
 ```
 
 * Correlación entre age, chol, trtbps
@@ -308,13 +307,89 @@ hist(menos_probabilidad$age,breaks=20)
 A partir de esta tabla, se puede ver que hay una correlación débilmente positiva entre edad y presión arterial en reposo (coeficiente de correlación de 0.28) y una correlación débilmente negativa entre colesterol y presión arterial en reposo (coeficiente de correlación de -0.15). Esto significa que a medida que la edad aumenta, la presión arterial en reposo también tiende a aumentar, mientras que a medida que el colesterol aumenta, la presión arterial en reposo tiende a disminuir.
 
 ```{r correlacion}
-cor(data_heart[,c("age","chol", "trtbps")])
+cor(data_heart[,c("age", "chol", "trtbps")])
 ```
+
 * Creación de un modelo de regresión logística
+
+```{r regresionlogistica}
+# Generamos los datos de entrenamiento y test para el modelo
+set.seed(123)
+ind <- sample(seq_len(nrow(data_heart)), size = round(.8 * dim(data_heart)[1]))
+training <- data_heart[ind, ]
+testing <- data_heart[-ind, ]
+
+# Estimamos el modelo
+model.logist1=glm(formula=output~age+sex+cp+trtbps+thalachh+exng+oldpeak+caa,data=training, family=binomial)
+summary(model.logist1)
+```
+
+Observamos que la variable age no es significativa, por lo que procedemos a eliminarla del modelo.\
+
+```{r regresionlogistica2}
+model.logist2=glm(formula=output~sex+cp+trtbps+thalachh+exng+oldpeak+caa,data=training, family=binomial)
+summary(model.logist2)
+vif(model.logist2)
+```
+
+Vemos que ahora todas las variables son significativas y que no existe colinealidad.\
+
+```{r confusion}
+pred_test <- predict(object = model.logist2, newdata = testing, type = "response")
+
+## Predicción
+testing$prediction <- ifelse(pred_test < 0.5 ,0, 1)
+prediction <- as.factor(testing$prediction)
+true <- testing$output
+glimpse(testing[,c(14,16)])
+
+# Matriz confusión
+confusionMatrix(prediction, true, positive="1")
+```
+
+Una de las métricas que se pueden usar para evaluar el modelo es la exactitud (accuracy), que es la
+proporción entre las predicciones correctas hechas por el modelo y el total de predicciones.
+En nuestro caso se obtiene un valor de 0.7667 con un intervalo de confianza de (0.6396, 0.8662).
+
+Por otro lado:
+
+• La sensibilidad (sensitivity): 0.9375. Proporción de casos positivos correctamente classificados.
+
+• La especificidad (specificity): 0.5714. Proporción de casos negativos correctamente classificados.
+
+A la vista de estos resultados, se puede concluir que es un buen modelo.\
+
+```{r bondad}
+# Realizamos el test de Chi-cuadrado
+dev <- model.logist2$deviance
+nullDev <- model.logist2$null.deviance
+Chi_Obs <- nullDev - dev
+Chi_Obs
+
+# Calculamos la probabilidad asociada al estadístico del contraste
+gl <- model.logist2$df.null - model.logist2$df.residual
+chi_prob <- 1 - pchisq(Chi_Obs,gl)
+chi_prob
+```
+
+A la vista de los resultados el ajuste es bueno con un p-value de 0.\
+
+```{r curvaRoc}
+# Se realiza el dibujo de la curva ROC
+prob_low = predict(model.logist2, training, type="response")
+r = roc(training$output, prob_low, data=training)
+plot(r)
+
+value.auc <- auc(r)
+value.auc
+```
+El área por debajo de esa curva toma el valor de 0.921, por lo que la habilidad del modelo para predecir es muy buena.
+
 
 # 6. Resolución del problema.
 
 A partir de los resultados obtenidos podemos indicar que:
+
 * Existen diferencias significativas entre la distribución de sexos en la probabilidad de sufrir un ataque cardíaco
 * Existen diferencias significativas entre las medas de edad de las personas con más y menos probabilidad de sufrir un ataque cardíaco.
 
