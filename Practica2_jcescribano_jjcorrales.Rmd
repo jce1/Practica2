@@ -33,7 +33,7 @@ https://www.kaggle.com/datasets/rashikrahmanpritom/heart-attack-analysis-predict
 
 El nombre del dataset es "Heart Attack Analysis & Prediction Dataset" y contiene diversas variables con información médica de diversos pacientes y la variable "output" dicotómica que indica si tiene más o menos probabilidad de sufrir un ataque cardíaco.
 
-Este dataset nos permite por un lado realizar un análisis de cuáles son las variables más relevantes de cara a predecir un ataque cardíaco y por otra nos permite modelar un sistema predictivo que nos indique la probabilidad de sufrir un ataque cardíaco en base a las variables médicas de un paciente.
+Este dataset nos permite realizar el análisis de diversos datos médicos que pueden ser relevantes a la predicción de la probabilidad de sufrir un ataque cardíaco. Con estos datos estudiaremos la relevancia que tienen algunas variables básicas como la edad y el sexo y construiremos un modelo para determinar la viabilidad de construir un modelo predictivo.
 
 El detalle de las variables contenidas en el dataset es el siguiente:
 
@@ -164,28 +164,25 @@ Se corrigen los valores extremos de la variable __chol__ aplicando la imputació
 
 # 4. Análisis de los datos.
 
-## 4.1 Selección de los grupos de datos que se quieren analizar/comparar (p. ej., si se van a comparar grupos de datos, ¿cuáles son estos grupos y qué tipo de análisis se van a aplicar?)
+## 4.1 Selección de los grupos de datos que se quieren analizar/comparar 
 
 A continuación indico las preguntas que se quieren responder, las variables que utilizaremos para ello y el tipo de análisis que se realizará en cada caso:
 
-* Tiene influencia el sexo en la probabilidad de tener un ataque cardíaco
+* ¿Tiene influencia el sexo en la probabilidad de tener un ataque cardíaco?
   *  Variables analizadas:
     * sex
     * output
   * Tipo de análisis
-    * Histograma
-    * Tabla de contingencia
-    * Chi cuadrado
+    * Indendencia de dos variables categóricas
+      * Tabla de contingencia
+      * Chi cuadrado
 * ¿La edad de las personas con más probabilidad de ataque cardíaco es significativamente diferente de las que tienen menos probabilidad?
   *  Variables analizadas:
     * age
     * output
   * Tipo de análisis
-    * Gráfico de dispersión
     * Tabla de contingencia
     * Chi cuadrado
-    
-* Correlación entre age, chol, trtbps
 
 * Creación de un modelo de regresión logística
   * Variables analizadas:
@@ -274,43 +271,58 @@ leveneTest(sex_num ~ output, data=data_heart)
 ```
 
 
-## 4.3 Aplicación de pruebas estadísticas para comparar los grupos de datos. En función de los datos y el objetivo del estudio, aplicar pruebas de contraste de hipótesis, correlaciones, regresiones, etc. Aplicar al menos tres métodos de análisis diferentes.
+## 4.3 Aplicación de pruebas estadísticas para comparar los grupos de datos. 
 
-* Tiene influencia el sexo en la probabilidad de tener un ataque cardíaco
+En función de los datos y el objetivo del estudio, aplicar pruebas de contraste de hipótesis, correlaciones, regresiones, etc. Aplicar al menos tres métodos de análisis diferentes.
+
+### ¿Tiene influencia el sexo en la probabilidad de tener un ataque cardíaco?
+
+Para responder a esta pregunta realizaremos un test de independencia para dos variables categóricas.
+
+Como primer paso calculamos la tabla de contingencia y representamos sus valores en un gráfico de
+barras. 
+
+Tanto en la tabla como en él gráfico observamos diferencias en los valores para cada sexo y que parece
+existir alguna relación entre ambas, para comprobar si estas diferencias son estadísticamente significativas realizamos
+la prueba de chi cuadrado.
+
+Como resultado del test chi-cuadrado obtenemos un p-value<0.05 lo que significa que existe una diferencia significativa en la distribución entre los sexos con respecto a la probabilidad de tener un ataque cardíaco.
+
 
 ```{r fig.height = 3, fig.width = 5}
 tabla_contingencia <- table(data_heart$sex, data_heart$output)
+
+table(data_heart$sex[data_heart$output == 1])
+rownames(tabla_contingencia) <- c("Sex 0","Sex 1")
+colnames(tabla_contingencia) <- c("Menos probabilidad","Más probabilidad")
 print(tabla_contingencia)
 barplot(tabla_contingencia, legend = TRUE)
 chisq.test(tabla_contingencia)
 nrow(subset(data_heart, sex == 1 & output == 0))
 ```
-Como resultado del test chi-cuadrado obtenemos un p-value<0.05 lo que significa que existe una diferencia significativa en la distribución entre los sexos con respecto a la probabilidad de tener un ataque cardíaco.
 
-* ¿La edad de las personas con más probabilidad de ataque cardíaco es significativamente diferente de las que tienen menos probabilidad?
 
-Ya que no existe homogeneidad en la varianza entre age y output, se tiene que pasar el parámetro var.equal = False a la función t.test (así utilizará el t-test de Welch) para que lo tenga en cuenta.
+### ¿La edad de las personas con más probabilidad de ataque cardíaco es significativamente diferente de las que tienen menos probabilidad?
+
+Para responder a esta pregunta realizaremos un contraste de hipótesis para comprobar si la media de edad en el grupo con más probabilidad de ataque cardíaco es diferente del grupo con menos probabilidad.
+
+Como primer paso, se incluyen un histograma para la población de la muestra con más probabilidad de ataque cardíaco y otra con la que tiene menos a efectos de observar las diferencias en la distribución de edades. Observando estos histogramos observamos que la distribución es diferente.
+
+Para realizar el contraste de hipotesis y ya que no existe homogeneidad en la varianza entre age y output, se tiene que pasar el parámetro var.equal = False a la función t.test (así utilizará el t-test de Welch) para que lo tenga en cuenta.
+
 El resultado del test indica que es muy poco probable que la diferencia observada en la media de la edad entre los dos grupos sea debido al azar. Por lo tanto, se puede concluir que hay una diferencia significativa en la edad entre los dos grupos.
 
-Se incluyen un histograma para la población de la muestra con más probabilidad de ataque cardíaco y otra con la que tiene menos a efectos de observar las diferencias en la distribución de edades.
+
 
 ```{r fig.height = 3, fig.width = 4}
 mas_probabilidad <- subset(data_heart, output == 1)
 menos_probabilidad <- subset(data_heart, output == 0)
-t.test(data_heart$age ~ data_heart$output,var.equal = FALSE)
 hist(mas_probabilidad$age,breaks=20)
 hist(menos_probabilidad$age,breaks=20)
+t.test(data_heart$age ~ data_heart$output,var.equal = FALSE)
 ```
 
-* Correlación entre age, chol, trtbps
-
-A partir de esta tabla, se puede ver que hay una correlación débilmente positiva entre edad y presión arterial en reposo (coeficiente de correlación de 0.28) y una correlación débilmente negativa entre colesterol y presión arterial en reposo (coeficiente de correlación de -0.15). Esto significa que a medida que la edad aumenta, la presión arterial en reposo también tiende a aumentar, mientras que a medida que el colesterol aumenta, la presión arterial en reposo tiende a disminuir.
-
-```{r correlacion}
-cor(data_heart[,c("age", "chol", "trtbps")])
-```
-
-* Creación de un modelo de regresión logística
+### Creación de un modelo de regresión logística
 
 ```{r regresionlogistica}
 # Generamos los datos de entrenamiento y test para el modelo
@@ -388,9 +400,21 @@ El área por debajo de esa curva toma el valor de 0.921, por lo que la habilidad
 
 # 6. Resolución del problema.
 
-A partir de los resultados obtenidos podemos indicar que:
+Dado el problema que planteabamos consistente en por un lado, analizar algunas de las variables de cara a determinar si tienen influencia en la probabilidad y por otro crear un modelo predictivo con el fin de evaluar su calidad, hemos llegado a las siguientes conclusiones:
 
 * Existen diferencias significativas entre la distribución de sexos en la probabilidad de sufrir un ataque cardíaco
-* Existen diferencias significativas entre las medas de edad de las personas con más y menos probabilidad de sufrir un ataque cardíaco.
+* Existen diferencias significativas entre las medias de edad de las personas con más y menos probabilidad de sufrir un ataque cardíaco.
+* Es posible obtener un modelo de regresión logística que obtenga unos buenos resultados predictivos (Sensibilidad = 0.94, especificidad = 0.57)
+
+Como conclusión del análisis podemos indicar que con el conjunto de datos de entrada que hemos utilizado es viable la creación de modelos predictivos que permiten obtener una estimación de la probabilidad de sufrir un ataque cardíaco del paciente en base a sus datos médicos.
+
+# Tabla de contribuciones
+| Contribuciones | Firma |
+|----------------|-------|
+| Investigación previa | jcescribano, jjcorrales |
+| Redaccción de las respuestas  |  jcescribano, jjcorrales |
+| Desarrollo del código |  jcescribano, jjcorrales |
+| Parcipación en el vídeo |  jcescribano, jjcorrales |
+
 
 
