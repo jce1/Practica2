@@ -365,9 +365,9 @@ En nuestro caso se obtiene un valor de 0.7667 con un intervalo de confianza de (
 
 Por otro lado:
 
-• La sensibilidad (sensitivity): 0.9375. Proporción de casos positivos correctamente classificados.
+• La sensibilidad (sensitivity): 0.9375. Proporción de casos positivos correctamente clasificados.
 
-• La especificidad (specificity): 0.5714. Proporción de casos negativos correctamente classificados.
+• La especificidad (specificity): 0.5714. Proporción de casos negativos correctamente clasificados.
 
 A la vista de estos resultados, se puede concluir que es un buen modelo.\
 
