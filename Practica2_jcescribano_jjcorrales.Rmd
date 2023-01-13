@@ -140,7 +140,7 @@ idx <- which(data_heart$oldpeak %in% x)
 sort(data_heart$oldpeak[idx])
 ```
 
-De las variables analizadas, solo se detecta que existen valores extremos en la variable __chol__. En el resto de variables, a pesar de que existen valores atípicos, estos no se consideran valores anómalos.
+De las variables analizadas, solo se detecta que existen valores extremos en la variable __chol__. En el resto de variables, a pesar de que existen valores atípicos, estos no se consideran valores anómalos.\
 
 ```{r extremos_correccion}
 # chol
@@ -158,6 +158,9 @@ mean.m <- round(mean(data_heart$chol[data_heart$sex == 1], na.rm=TRUE ))
 # Se asignan los nuevos valores
 data_heart$chol[idx] <- ifelse(data_heart$sex[idx] == 0, mean.f, mean.m)
 data_heart$chol[idx]
+
+# Exportamos nuestro dataset limpio a CSV
+write.csv(data_heart, "heart_procesado.csv")
 ```
 
 Se corrigen los valores extremos de la variable __chol__ aplicando la imputación de su nuevo valor por la media aritmética de los registros del mismo género, es decir, separado por género.
@@ -169,24 +172,26 @@ Se corrigen los valores extremos de la variable __chol__ aplicando la imputació
 A continuación indico las preguntas que se quieren responder, las variables que utilizaremos para ello y el tipo de análisis que se realizará en cada caso:
 
 * ¿Tiene influencia el sexo en la probabilidad de tener un ataque cardíaco?
-  *  Variables analizadas:
-    * sex
-    * output
+  * Variables analizadas:
+    * sex, output
+
   * Tipo de análisis
     * Indendencia de dos variables categóricas
       * Tabla de contingencia
-      * Chi cuadrado
+      * Chi cuadrado\
+
 * ¿La edad de las personas con más probabilidad de ataque cardíaco es significativamente diferente de las que tienen menos probabilidad?
-  *  Variables analizadas:
-    * age
-    * output
+  * Variables analizadas:
+    * age, output
+
   * Tipo de análisis
     * Tabla de contingencia
-    * Chi cuadrado
+    * Chi cuadrado\
 
 * Creación de un modelo de regresión logística
   * Variables analizadas:
     * output -> age, sex, cp, trtbps, thalachh, exng, oldpeak, caa
+
   * Tipo de análisis:
     * Correlación entras las variables independientes
     * Creación del modelo de regresión
@@ -194,27 +199,24 @@ A continuación indico las preguntas que se quieren responder, las variables que
 
 ## 4.2 Comprobación de la normalidad y homogeneidad de la varianza.
 
-### Comprobación de la normalidad
-A continuación comprobaremos la normalidad de las variables que vamos a analizar
+### 4.2.1 Comprobación de la normalidad
+A continuación comprobaremos la normalidad de las variables que vamos a analizar.
 
-#### Edad
+-- **Age**
 
-* Un qqplot donde observamos que la curva se ajusta bastante bien a la normal
-* Un test de Kolmogorov-Smirnov donde obtenemos un p-value>0.05 por lo que podemos
-considerar la variable como normal
+* Un qqplot donde observamos que la curva se ajusta bastante bien a la normal.
+* Un test de Kolmogorov-Smirnov donde obtenemos un p-value > 0.05 por lo que podemos considerar la variable como normal.\
 
 ```{r fig.height = 3, fig.width = 4}
 qqnorm(data_heart$age)
 qqline(data_heart$age, col=2)
 ks.test(data_heart$age, pnorm, mean(data_heart$age), sd(data_heart$age))
 ```
-#### trtbps
+-- **trtbps**
 
-* Un qqplot donde observamos que la curva no se ajusta a la normal
-* Un test de Kolmogorov-Smirnov donde obtenemos un p-value < 0.05 por lo que podemos
-considerar la variable como no normal
-* Un test de Shapiro-Wilk donde obtenemos un p-value < 0.05 por lo que podemos
-considerar la variable como no normal
+* Un qqplot donde observamos que la curva no se ajusta a la normal.
+* Un test de Kolmogorov-Smirnov donde obtenemos un p-value < 0.05 por lo que podemos considerar la variable como no normal.
+* Un test de Shapiro-Wilk donde obtenemos un p-value < 0.05 por lo que podemos considerar la variable como no normal.\
 
 ```{r fig.height = 3, fig.width = 4}
 qqnorm(data_heart$trtbps)
@@ -222,14 +224,13 @@ qqline(data_heart$trtbps, col=2)
 ks.test(data_heart$trtbps, pnorm, mean(data_heart$trtbps), sd(data_heart$trtbps))
 shapiro.test(data_heart$trtbps)
 ```
-#### chol
-* Un qqplot donde observamos que la curva se ajusta bastante bien a la normal
-* Un test de Kolmogorov-Smirnov donde obtenemos un p-value > 0.05 por lo que podemos
-considerar la variable como normal
-* Un test de Shapiro-Wilk donde obtenemos un p-value < 0.05 por lo que podemos
-considerar la variable como no normal
+-- **chol**
 
-Dado que tanto en el qqplot como en el test de Kolmogorov-Smirnov se observa normalidad consideraremos la variable como normal
+* Un qqplot donde observamos que la curva se ajusta bastante bien a la normal.
+* Un test de Kolmogorov-Smirnov donde obtenemos un p-value > 0.05 por lo que podemos considerar la variable como normal.
+* Un test de Shapiro-Wilk donde obtenemos un p-value < 0.05 por lo que podemos considerar la variable como no normal.
+
+Dado que tanto en el qqplot como en el test de Kolmogorov-Smirnov se observa normalidad consideraremos la variable como normal.\
 
 ```{r fig.height = 3, fig.width = 4}
 qqnorm(data_heart$chol)
@@ -239,55 +240,51 @@ shapiro.test(data_heart$chol)
 ```
 
 
-### Comprobación de la homogeneidad de la varianza
+### 4.2.2 Comprobación de la homogeneidad de la varianza
 
-#### age
+-- **Age**
 
-No existe homogeneidad de la varianza entre edad y output (p-value<0.05)
+No existe homogeneidad de la varianza entre edad y output (p-value < 0.05).\
+
 ```{r homoage}
 leveneTest(age ~ output, data=data_heart)
 ```
-#### trtbps
+-- **trtbps**
 
-Existe homogeneidad de la varianza entre trtbps y output (p-value>0.05)
+Existe homogeneidad de la varianza entre trtbps y output (p-value > 0.05).\
 
 ```{r homotrtbps}
 leveneTest(trtbps ~ output, data=data_heart)
 ```
-#### chol
+-- **chol**
 
-Existe homogeneidad de la varianza entre chol y output (p-value>0.05)
+Existe homogeneidad de la varianza entre chol y output (p-value > 0.05).\
 
 ```{r homochol}
 leveneTest(chol ~ output, data=data_heart)
 ```
-#### sex
+-- **sex**
 
-No existe homogeneidad de la varianza entre sex y output (p-value<0.05)
+No existe homogeneidad de la varianza entre sex y output (p-value < 0.05).\
 
 ```{r homosex}
 data_heart$sex_num <- as.numeric(data_heart$sex)
 leveneTest(sex_num ~ output, data=data_heart)
 ```
 
-
 ## 4.3 Aplicación de pruebas estadísticas para comparar los grupos de datos. 
 
 En función de los datos y el objetivo del estudio, aplicar pruebas de contraste de hipótesis, correlaciones, regresiones, etc. Aplicar al menos tres métodos de análisis diferentes.
 
-### ¿Tiene influencia el sexo en la probabilidad de tener un ataque cardíaco?
+### 4.3.1 ¿Tiene influencia el sexo en la probabilidad de tener un ataque cardíaco?
 
 Para responder a esta pregunta realizaremos un test de independencia para dos variables categóricas.
 
-Como primer paso calculamos la tabla de contingencia y representamos sus valores en un gráfico de
-barras. 
+Como primer paso calculamos la tabla de contingencia y representamos sus valores en un gráfico de barras. 
 
-Tanto en la tabla como en él gráfico observamos diferencias en los valores para cada sexo y que parece
-existir alguna relación entre ambas, para comprobar si estas diferencias son estadísticamente significativas realizamos
-la prueba de chi cuadrado.
+Tanto en la tabla como en él gráfico observamos diferencias en los valores para cada sexo y que parece existir alguna relación entre ambas, para comprobar si estas diferencias son estadísticamente significativas realizamos la prueba de chi cuadrado.
 
-Como resultado del test chi-cuadrado obtenemos un p-value<0.05 lo que significa que existe una diferencia significativa en la distribución entre los sexos con respecto a la probabilidad de tener un ataque cardíaco.
-
+Como resultado del test chi-cuadrado obtenemos un p-value<0.05 lo que significa que existe una diferencia significativa en la distribución entre los sexos con respecto a la probabilidad de tener un ataque cardíaco.\
 
 ```{r fig.height = 3, fig.width = 5}
 tabla_contingencia <- table(data_heart$sex, data_heart$output)
@@ -302,7 +299,7 @@ nrow(subset(data_heart, sex == 1 & output == 0))
 ```
 
 
-### ¿La edad de las personas con más probabilidad de ataque cardíaco es significativamente diferente de las que tienen menos probabilidad?
+### 4.3.2 ¿La edad de las personas con más probabilidad de ataque cardíaco es significativamente diferente de las que tienen menos probabilidad?
 
 Para responder a esta pregunta realizaremos un contraste de hipótesis para comprobar si la media de edad en el grupo con más probabilidad de ataque cardíaco es diferente del grupo con menos probabilidad.
 
@@ -310,9 +307,7 @@ Como primer paso, se incluyen un histograma para la población de la muestra con
 
 Para realizar el contraste de hipotesis y ya que no existe homogeneidad en la varianza entre age y output, se tiene que pasar el parámetro var.equal = False a la función t.test (así utilizará el t-test de Welch) para que lo tenga en cuenta.
 
-El resultado del test indica que es muy poco probable que la diferencia observada en la media de la edad entre los dos grupos sea debido al azar. Por lo tanto, se puede concluir que hay una diferencia significativa en la edad entre los dos grupos.
-
-
+El resultado del test indica que es muy poco probable que la diferencia observada en la media de la edad entre los dos grupos sea debido al azar. Por lo tanto, se puede concluir que hay una diferencia significativa en la edad entre los dos grupos.\
 
 ```{r fig.height = 3, fig.width = 4}
 mas_probabilidad <- subset(data_heart, output == 1)
@@ -322,7 +317,7 @@ hist(menos_probabilidad$age,breaks=20)
 t.test(data_heart$age ~ data_heart$output,var.equal = FALSE)
 ```
 
-### Creación de un modelo de regresión logística
+### 4.3.3 Creación de un modelo de regresión logística
 
 ```{r regresionlogistica}
 # Generamos los datos de entrenamiento y test para el modelo
@@ -336,7 +331,7 @@ model.logist1=glm(formula=output~age+sex+cp+trtbps+thalachh+exng+oldpeak+caa,dat
 summary(model.logist1)
 ```
 
-Observamos que la variable age no es significativa, por lo que procedemos a eliminarla del modelo.\
+Observamos que la variable **age** no es significativa, por lo que procedemos a eliminarla del modelo.\
 
 ```{r regresionlogistica2}
 model.logist2=glm(formula=output~sex+cp+trtbps+thalachh+exng+oldpeak+caa,data=training, family=binomial)
@@ -359,15 +354,14 @@ glimpse(testing[,c(14,16)])
 confusionMatrix(prediction, true, positive="1")
 ```
 
-Una de las métricas que se pueden usar para evaluar el modelo es la exactitud (accuracy), que es la
-proporción entre las predicciones correctas hechas por el modelo y el total de predicciones.
+Una de las métricas que se pueden usar para evaluar el modelo es la **exactitud** (accuracy), que es la proporción entre las predicciones correctas hechas por el modelo y el total de predicciones.
 En nuestro caso se obtiene un valor de 0.7667 con un intervalo de confianza de (0.6396, 0.8662).
 
 Por otro lado:
 
-• La sensibilidad (sensitivity): 0.9375. Proporción de casos positivos correctamente clasificados.
+• La **sensibilidad** (sensitivity): 0.9375. Proporción de casos positivos correctamente clasificados.
 
-• La especificidad (specificity): 0.5714. Proporción de casos negativos correctamente clasificados.
+• La **especificidad** (specificity): 0.5714. Proporción de casos negativos correctamente clasificados.
 
 A la vista de estos resultados, se puede concluir que es un buen modelo.\
 
@@ -395,8 +389,7 @@ plot(r)
 value.auc <- auc(r)
 value.auc
 ```
-El área por debajo de esa curva toma el valor de 0.921, por lo que la habilidad del modelo para predecir es muy buena.
-
+El área por debajo de esa curva toma el valor de 0.921, por lo que la habilidad del modelo para predecir es muy buena.\
 
 # 6. Resolución del problema.
 
@@ -408,13 +401,15 @@ Dado el problema que planteabamos consistente en por un lado, analizar algunas d
 
 Como conclusión del análisis podemos indicar que con el conjunto de datos de entrada que hemos utilizado es viable la creación de modelos predictivos que permiten obtener una estimación de la probabilidad de sufrir un ataque cardíaco del paciente en base a sus datos médicos.
 
+***
+
 # Tabla de contribuciones
 | Contribuciones | Firma |
 |----------------|-------|
-| Investigación previa | jcescribano, jjcorrales |
-| Redaccción de las respuestas  |  jcescribano, jjcorrales |
-| Desarrollo del código |  jcescribano, jjcorrales |
-| Parcipación en el vídeo |  jcescribano, jjcorrales |
+| Investigación previa | jcescribano, jcorralesp |
+| Redaccción de las respuestas  |  jcescribano, jcorralesp |
+| Desarrollo del código |  jcescribano, jcorralesp |
+| Parcipación en el vídeo |  jcescribano, jcorralesp |
 
 
 
