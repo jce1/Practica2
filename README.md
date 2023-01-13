@@ -2,24 +2,17 @@ Práctica realizada por: Juan Javier Corrales Pérez y Juan Carlos Escribano Rub
 
 Archivos:
 
-Fichero de rstudio que contiene el código y el texto de la práctica.
-
 Practica2_jcescribano_jjcorrales.Rmd
-
-Fichero pdf que contiene el documento de entrega de la práctica
+  Fichero de rstudio que contiene el código y el texto de la práctica.
 
 Practica2_jcescribano_jjcorrales.pdf
-
-Fichero de datos de entrada
+  Fichero pdf que contiene el documento de entrega de la práctica.
 
 heart.csv
-
-Este documento
-
-README.md
-
-Fichero de datos de entrada procesado
+  Fichero de datos de entrada.
 
 heart_procesado.csv
+  Fichero de datos de entrada procesado.
 
-
+README.md
+  Este documento.
